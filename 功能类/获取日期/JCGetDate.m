@@ -10,6 +10,13 @@
 
 @implementation JCGetDate
 
+/**
+ *  计算某年某月的总天数
+ *
+ *  @param date 时间
+ *
+ *  @return 某月的总天数
+ */
 + (NSInteger)getNumberOfDaysInMonthWithDate:(NSDate *)date {
     NSCalendar * calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar]; // 指定日历的算法
     // 只要个时间给日历,就会帮你计算出来。这里的时间取当前的时间。
@@ -19,6 +26,13 @@
     return range.length;
 }
 
+/**
+ *  获取某时间的具体信息，如年、月、日、周。。。
+ *
+ *  @param date 时间
+ *
+ *  @return JCDate 枚举
+ */
 + (JCDate)getDateInfo:(NSDate *)date {
     NSCalendar * calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar]; // 指定日历的算法 NSCalendarIdentifierGregorian,NSGregorianCalendar
     // NSDateComponent 可以获得日期的详细信息，即日期的组成
@@ -28,11 +42,26 @@
     return jcDate;
 }
 
+/**
+ *  字符串转换成时间，字符串格式为yyyy-MM-dd HH:mm:ss
+ *
+ *  @param string 表示时间的字符串
+ *
+ *  @return 时间类
+ */
 + (NSDate *)dateConvertWithString:(NSString *)string {
     NSString *dateFormat = @"yyyy-MM-dd HH:mm:ss";
     return [JCGetDate dateConvertWithString:string dateFormat:dateFormat];
 }
 
+/**
+ *  字符串转换成时间，格式自定义
+ *
+ *  @param string     表示时间的字符串
+ *  @param dateFormat 字符串所能转换成时间的格式
+ *
+ *  @return 时间类
+ */
 + (NSDate *)dateConvertWithString:(NSString *)string dateFormat:(NSString *)dateFormat {
     NSDateFormatter * formatter = [[NSDateFormatter alloc] init];
     [formatter setDateFormat:dateFormat];
@@ -40,11 +69,26 @@
     return date;
 }
 
+/**
+ *  时间转换成字符串，格式为yyyy-MM-dd HH:mm:ss
+ *
+ *  @param date 时间
+ *
+ *  @return 字符串
+ */
 + (NSString *)dateConvertWithDate:(NSDate *)date {
     NSString *dateFormat = @"yyyy-MM-dd HH:mm:ss";
     return [JCGetDate dateConvertWithDate:date dateFormat:dateFormat];
 }
 
+/**
+ *  时间转换成字符串，格式自定义
+ *
+ *  @param date       时间类
+ *  @param dateFormat 所要表达的时间格式
+ *
+ *  @return 字符串
+ */
 + (NSString *)dateConvertWithDate:(NSDate *)date dateFormat:(NSString *)dateFormat {
     NSDateFormatter * formatter = [[NSDateFormatter alloc] init];
     [formatter setDateFormat:dateFormat];
@@ -52,6 +96,13 @@
     return dateString;
 }
 
+/**
+ *  获取某年的某月里的所有天数的时间信息
+ *
+ *  @param date 时间
+ *
+ *  @return 数组
+ */
 + (NSMutableArray *)getAllDaysWithCalender:(NSDate *)date {
     NSUInteger dayCount = [self getNumberOfDaysInMonthWithDate:date]; //一个月的总天数
     NSDateFormatter * formatter = [[NSDateFormatter alloc] init];
