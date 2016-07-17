@@ -1,0 +1,51 @@
+#Code
+###功能类
+	获取日期
+	计时
+	计算文本的高度
+	验证邮箱手机号密码
+	捕获崩溃
+	数组排序
+	文件管理
+	AES加密
+	md5加密
+	SQL
+	XML解析
+	中文转拼音
+###类扩展
+	AVAudioPlayer
+	NSDate
+	NSObject
+	NSTimer
+	UIButton
+	UIImage
+	UIImageView
+	UIView
+	UIWebView
+###网络
+	网络状态
+	返回下载的数据
+###自定义UI
+	对按钮操作的移动、放大、缩小、旋转的动作类
+	滑动条
+	画板
+	脉冲动画
+	密码锁
+	跑马灯
+	日历
+	提示视图
+	文本画线
+	文本下划线
+	验证码
+	圆形
+	图片查看视图
+	图片View
+	Alter
+	TextView的提示符
+	toolBal的按钮位置
+	图片滚动加分页
+###H文件
+	常见宏
+	字体名
+###可做基类
+	UITabBarController

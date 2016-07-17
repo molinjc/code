@@ -1,0 +1,89 @@
+//
+//  JCFamiliarMacro.pch
+//  JCMapTest
+//
+//  Created by 林建川 on 16/7/17.
+//  Copyright © 2016年 molin. All rights reserved.
+//
+
+/*
+ *******************************
+ *                            **
+ *          常见的宏            *
+ *                            **
+ *******************************
+ */
+
+#ifndef JCFamiliarMacro_pch
+#define JCFamiliarMacro_pch
+
+
+// 坐标
+#define SCREEN_BOUNDS [UIScreen mainScreen].bounds
+
+
+
+
+// 打印
+#define JCLog(string,...) NSLog(@"行号:%d,类与方法:%s,内容:%@",__LINE__,__func__,[NSString stringWithFormat:(string), ##__VA_ARGS__]);
+
+
+
+
+/************** 颜色 ******************/
+
+// 随机颜色
+#define JC_COLOR_RANDOM [UIColor colorWithRed:arc4random_uniform(256)/255.0 green:arc4random_uniform(256)/255.0 blue:arc4random_uniform(256)/255.0 alpha:1.0]
+
+// 由RGB设置颜色
+#define JC_COLOR_RGB(r,g,b) [UIColor colorWithRed:(r)/255.0 green:(g)/255.0 blue:(b)/255.0 alpha:1.0]
+
+// 由RGB设置颜色以及透明度
+#define JC_COLOR_RGBA(r,g,b,a) [UIColor colorWithRed:(r)/255.0 green:(g)/255.0 blue:(b)/255.0 alpha:(a)]
+
+// 十六进制设置颜色
+#define JC_COLOCR_RGB16(value) [UIColor colorWithRed:((float)((value & 0xFF0000) >> 16))/255.0 green:((float)((value & 0xFF00) >> 8))/255.0 blue:((float)(value & 0xFF))/255.0 alpha:1.0]
+
+// 十六进制设置颜色和设置透明度
+#define JC_COLOCR_RGBA16(value,a) [UIColor colorWithRed:((float)((value & 0xFF0000) >> 16))/255.0 green:((float)((value & 0xFF00) >> 8))/255.0 blue:((float)(value & 0xFF))/255.0 alpha:(a)]
+
+// 清除颜色
+#define JC_COLOCR_CLEAR [UIColor clearColor]
+
+/******************* end **************************/
+
+
+
+
+
+
+/************ 单例的实现，有.h和.m的 *****************/
+
+#define JC_SINGLETON_H +(instancetype)sharedInstance;   // .h的，声明单例方法
+
+// .m的，实现单例的写法
+#define JC_SINGLETON_M \
+static id _instance;\
++ (instancetype)allocWithZone:(struct _NSZone *)zone {\
+static dispatch_once_t once;\
+dispatch_once(&once, ^{\
+    _instance = [super allocWithZone:zone];\
+});\
+return _instance;\
+}\
++ (instancetype)sharedInstance {\
+static dispatch_once_t once;\
+dispatch_once(&once, ^{\
+    _instance = [[self alloc] init];\
+});\
+return _instance;\
+}\
+- (id)copyWithZone:(NSZone *)zone {\
+return _instance;\
+}
+/************** 单例的实现 end ********************/
+
+
+
+
+#endif /* JCFamiliarMacro_pch */
