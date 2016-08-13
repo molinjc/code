@@ -79,6 +79,12 @@
 // 参照同层级view的bottom
 @property (nonatomic, weak, readonly) UIView *(^layoutSameLayerBottom)(UIView *sameLayerView,CGFloat bottom);
 
+// 参照同层级view的width
+@property (nonatomic, weak, readonly) UIView *(^layoutSameLayerWidth)(UIView *sameLayerView,CGFloat width);
+
+// 参照同层级view的height
+@property (nonatomic, weak, readonly) UIView *(^layoutSameLayerHeight)(UIView *sameLayerView,CGFloat height);
+
 // 参照同层级view的centerX
 @property (nonatomic, weak, readonly) UIView *(^layoutSameLayerCenterX)(UIView *sameLayerView,CGFloat centerX);
 
@@ -98,6 +104,12 @@
 
 // 参照同层级view的bottom，bottom * multiplier
 @property (nonatomic, weak, readonly) UIView *(^layoutSameLayerBottomWithMultiplier)(UIView *sameLayerView,CGFloat multiplier, CGFloat bottom);
+
+// 参照同层级view的bottom，width * multiplier
+@property (nonatomic, weak, readonly) UIView *(^layoutSameLayerWidthWithMultiplier)(UIView *sameLayerView,CGFloat multiplier, CGFloat width);
+
+// 参照同层级view的bottom，height * multiplier
+@property (nonatomic, weak, readonly) UIView *(^layoutSameLayerHeightWithMultiplier)(UIView *sameLayerView,CGFloat multiplier, CGFloat height);
 
 // 参照同层级view的centerX，centerX * multiplier
 @property (nonatomic, weak, readonly) UIView *(^layoutSameLayerCenterXWithMultiplier)(UIView *sameLayerView,CGFloat multiplier, CGFloat centerX);
@@ -132,5 +144,17 @@
 
 // 参照同层级view的bottom，在同层级view的底边（bottom），也就是同层级view在self的顶边（top），self.top = 同层级view.bottom * multiplier + constant
 @property (nonatomic, weak, readonly) UIView *(^layoutAtSameLayerBottomWithMultiplier)(UIView *sameLayerView, CGFloat multiplier, CGFloat constant);
+
+#pragma mark - 其他计算大小方法
+
+/**
+ *  计算文本宽度
+ *
+ *  @param text 文本
+ *  @param font 字体
+ *
+ *  @return 宽度
+ */
+- (CGFloat)calculationTextWidthWithText:(NSString *)text font:(UIFont *)font;
 
 @end

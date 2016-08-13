@@ -7,6 +7,7 @@
 //
 
 #import "NSObject+JCJSON.h"
+#import <objc/runtime.h>
 
 @implementation NSObject (JCJSON)
 
@@ -18,7 +19,8 @@
 //    }
     Class className = [self class];
     NSObject *model = [className new];
-    [model setValuesForKeysWithDictionary:dic];
+//    [model setValuesForKeysWithDictionary:dic];
+    [model modelValuesForKeysWithDictionary:dic];
     return model;
 }
 
@@ -43,7 +45,8 @@
     }
     Class className = [self class];
     NSObject *model = [className new];
-    [model setValuesForKeysWithDictionary:dic];
+//    [model setValuesForKeysWithDictionary:dic];  系统的方法
+    [model modelValuesForKeysWithDictionary:dic];
     return model;
 }
 
@@ -52,6 +55,40 @@
     return [NSData dataWithContentsOfFile:path];
 }
 
+- (void)modelValuesForKeysWithDictionary:(NSDictionary<NSString *, id> *)keyedValues {
+    NSMutableArray *propertys = [self allPropertys];
+    [propertys enumerateObjectsUsingBlock:^(NSString *key, NSUInteger idx, BOOL * _Nonnull stop) {
+        id value = keyedValues[key];
+        if (!value) {
+            value = nil;
+        }
+        [self setValue:value forKey:key];
+    }];
+}
 
+/**
+ *  获取属性
+ */
+- (NSMutableArray *)allPropertys {
+    unsigned int count;
+    NSMutableArray *propertyArray = [NSMutableArray new];
+    // 获取指向该类所有属性的指针
+    objc_property_t *propertys = class_copyPropertyList([self class], &count);
+    
+    for (int i=0; i<count; i++) {
+        
+        // 获得该类的一个属性的指针
+        objc_property_t property = propertys[i];
+        
+        // 获取属性的名称
+        const char *name = property_getName(property);
+        
+        // 将C的字符串转为OC的
+        NSString *key = [NSString stringWithUTF8String:name];
+        [propertyArray addObject:key];
+    }
+    free(propertys);
+    return propertyArray;
+}
 
 @end

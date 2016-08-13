@@ -79,9 +79,10 @@
         NSString *key = dic[@"key"];
         NSString *path = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)[0] stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.data",key]];
         
-        [self setValue:nil forKey:key];
-        id nilD = nil;
-        [NSKeyedArchiver archiveRootObject:nilD toFile:path];;
+        JCEncodeModel *model = [self valueForKey:key];
+        [model allClear];
+        [self setValue:model forKey:key];
+        [NSKeyedArchiver archiveRootObject:model toFile:path];;
     }
 }
 
@@ -115,6 +116,8 @@
         NSString *attributeKey = [NSString stringWithUTF8String:attribute_t.value];
         
         [propertyArray addObject:@{@"key":key,@"attribute":attribute,@"attributeKey":attributeKey}];
+        
+        free(attributes);
     }
     free(propertys);
     return propertyArray;

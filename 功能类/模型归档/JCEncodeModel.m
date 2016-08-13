@@ -100,6 +100,8 @@
         NSString *attribute = [NSString stringWithUTF8String:attribute_t.value];
         
         [propertyArray addObject:@{@"key":key,@"attribute":attribute}];
+        
+        free(attributes);
     }
     free(propertys);
     return propertyArray;

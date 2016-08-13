@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "JCEncodeModel.h"
 
 @interface JCArchiveTool : NSObject
 

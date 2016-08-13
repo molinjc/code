@@ -7,6 +7,7 @@
 //
 
 #import "UIView+JCLayout.h"
+#import <objc/runtime.h>
 
 /**
  *  判断有没设置translatesAutoresizingMaskIntoConstraints，YES是没有设置，就把它设置为NO
@@ -14,6 +15,59 @@
 #define ENOUGHCONSTRAINTS if (self.translatesAutoresizingMaskIntoConstraints) {\
 self.translatesAutoresizingMaskIntoConstraints = NO;\
 }
+
+/**
+ *  判断是否有父视图，没有就结束，抛出异常
+ */
+#define IFSUBVIEWS if (!self.subviews) {\
+NSParameterAssert(self);\
+return;\
+}
+
+/**
+ *  约束字典添加约束，参照物是父视图
+ */
+#define layoutConstraints_Super_AddObject_forKey(key) [self.layoutConstraints setObject:layoutConstraint forKey:[self keyWithLayoutAttribute:key]];
+/**
+ *  约束字典添加约束，参照物是同层视图
+ */
+#define layoutConstraints_SameLayer_AddObject_forKey(key) [self.layoutConstraints setObject:layoutConstraint forKey:[NSString stringWithFormat:@"sameLayer%@",[self keyWithLayoutAttribute:key]]];
+
+#define layoutConstraints_SameLayer_ContraryAttribute_AddObject_forKey(key) [self.layoutConstraints setObject:layoutConstraint forKey:[NSString stringWithFormat:@"sameLayer%@_C",[self keyWithLayoutAttribute:key]]];
+
+
+NSString *const left = @"Left";
+NSString *const right = @"Right";
+NSString *const top = @"Top";
+NSString *const bottom = @"Bottom";
+NSString *const centerX = @"CenterX";
+NSString *const centerY = @"CenterY";
+NSString *const width = @"Width";
+NSString *const height = @"Height";
+
+NSString *const sameLayerLeft = @"sameLayerLeft";
+NSString *const sameLayerRight = @"sameLayerRight";
+NSString *const sameLayerTop = @"sameLayerTop";
+NSString *const sameLayerBottom = @"sameLayerBottom";
+NSString *const sameLayerCenterX = @"sameLayerCenterX";
+NSString *const sameLayerCenterY = @"sameLayerCenterY";
+NSString *const sameLayerWidth = @"sameLayerWidth";
+NSString *const sameLayerHeight = @"sameLayerHeight";
+
+NSString *const sameLayerLeft_C = @"sameLayerLeft_C";
+NSString *const sameLayerRight_C = @"sameLayerRight_C";
+NSString *const sameLayerTop_C = @"sameLayerTop_C";
+NSString *const sameLayerBottom_C = @"sameLayerBottom_C";
+
+
+static const void *kLayoutConstraints = &kLayoutConstraints;
+
+@interface UIView ()
+
+@property (nonatomic, strong) NSMutableDictionary *layoutConstraints;
+
+@end
+
 
 @implementation UIView (JCLayout)
 
@@ -25,7 +79,12 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(CGFloat layoutLeft))layoutLeft {
     return ^(CGFloat layoutLeft) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeLeft constant:layoutLeft multiplier:1.0f];
+        NSLayoutConstraint *constraint = self.layoutConstraints[left];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeLeft constant:layoutLeft multiplier:1.0f];
+        }else {
+            constraint.constant = layoutLeft;
+        }
         return self;
     };
 }
@@ -36,7 +95,12 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(CGFloat layoutRight))layoutRight {
     return ^(CGFloat layoutRight) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeRight constant:-layoutRight multiplier:1.0f];
+        NSLayoutConstraint *constraint = self.layoutConstraints[right];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeRight constant:-layoutRight multiplier:1.0f];
+        }else {
+            constraint.constant = -layoutRight;
+        }
         return self;
     };
 }
@@ -47,7 +111,12 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(CGFloat layoutTop))layoutTop {
     return ^(CGFloat layoutTop) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeTop constant:layoutTop multiplier:1.0f];
+        NSLayoutConstraint *constraint = self.layoutConstraints[top];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeTop constant:layoutTop multiplier:1.0f];
+        }else {
+            constraint.constant = layoutTop;
+        }
         return self;
     };
 }
@@ -58,7 +127,12 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(CGFloat layoutBottom))layoutBottom {
     return ^(CGFloat layoutBottom) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeBottom constant:-layoutBottom multiplier:1.0f];
+        NSLayoutConstraint *constraint = self.layoutConstraints[bottom];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeBottom constant:-layoutBottom multiplier:1.0f];
+        }else {
+            constraint.constant = -layoutBottom;
+        }
         return self;
     };
 }
@@ -69,7 +143,12 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(CGFloat layoutWidth))layoutWidth {
     return ^(CGFloat layoutWidth) {
         ENOUGHCONSTRAINTS
-        [self addToSelfConstraintWithAttribute:NSLayoutAttributeWidth constant:layoutWidth multiplier:1.0f];
+        NSLayoutConstraint *constraint = self.layoutConstraints[width];
+        if (!constraint) {
+            [self addToSelfConstraintWithAttribute:NSLayoutAttributeWidth constant:layoutWidth multiplier:1.0f];
+        }else {
+            constraint.constant = layoutWidth;
+        }
         return self;
     };
 }
@@ -80,7 +159,12 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(CGFloat layoutHeight))layoutHeight {
     return ^(CGFloat layoutHeight) {
         ENOUGHCONSTRAINTS
-        [self addToSelfConstraintWithAttribute:NSLayoutAttributeHeight constant:layoutHeight multiplier:1.0f];
+        NSLayoutConstraint *constraint = self.layoutConstraints[height];
+        if (!constraint) {
+            [self addToSelfConstraintWithAttribute:NSLayoutAttributeHeight constant:layoutHeight multiplier:1.0f];
+        }else {
+            constraint.constant = layoutHeight;
+        }
         return self;
     };
 }
@@ -91,7 +175,12 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(CGFloat layoutCenterX))layoutCenterX {
     return ^(CGFloat layoutCenterX) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeCenterX constant:layoutCenterX multiplier:1.0f];
+        NSLayoutConstraint *constraint = self.layoutConstraints[centerX];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeCenterX constant:layoutCenterX multiplier:1.0f];
+        }else {
+            constraint.constant = layoutCenterX;
+        }
         return self;
     };
 }
@@ -102,7 +191,13 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(CGFloat layoutCenterY))layoutCenterY {
     return ^(CGFloat layoutCenterY) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeCenterY constant:layoutCenterY multiplier:1.0f];
+        NSLayoutConstraint *constraint = self.layoutConstraints[centerY];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeCenterY constant:layoutCenterY multiplier:1.0f];
+        }else {
+            constraint.constant = layoutCenterY;
+        }
+
         return self;
     };
 }
@@ -115,7 +210,13 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(CGFloat multiplier, CGFloat layoutLeft))layoutLeftWithMultiplier {
     return ^(CGFloat multiplier, CGFloat layoutLeft) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeLeft constant:layoutLeft multiplier:multiplier];
+        NSLayoutConstraint *constraint = self.layoutConstraints[left];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeLeft constant:layoutLeft multiplier:multiplier];
+        }else {
+            [self.superview removeConstraint:constraint];
+            [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeLeft constant:layoutLeft multiplier:multiplier];
+        }
         return self;
     };
 }
@@ -126,7 +227,13 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(CGFloat multiplier, CGFloat layoutRight))layoutRightWithMultiplier {
     return ^(CGFloat multiplier, CGFloat layoutRight) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeRight constant:-layoutRight multiplier:multiplier];
+        NSLayoutConstraint *constraint = self.layoutConstraints[right];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeRight constant:-layoutRight multiplier:multiplier];
+        }else {
+            [self.superview removeConstraint:constraint];
+            [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeRight constant:-layoutRight multiplier:multiplier];
+        }
         return self;
     };
 }
@@ -137,7 +244,13 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(CGFloat multiplier, CGFloat layoutTop))layoutTopWithMultiplier {
     return ^(CGFloat multiplier, CGFloat layoutTop) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeTop constant:layoutTop multiplier:multiplier];
+        NSLayoutConstraint *constraint = self.layoutConstraints[top];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeTop constant:layoutTop multiplier:multiplier];
+        }else {
+            [self.superview removeConstraint:constraint];
+            [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeTop constant:layoutTop multiplier:multiplier];
+        }
         return self;
     };
 }
@@ -148,29 +261,47 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(CGFloat multiplier, CGFloat layoutBottom))layoutBottomWithMultiplier {
     return ^(CGFloat multiplier, CGFloat layoutBottom) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeBottom constant:-layoutBottom multiplier:multiplier];
+        NSLayoutConstraint *constraint = self.layoutConstraints[bottom];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeBottom constant:-layoutBottom multiplier:multiplier];
+        }else {
+            [self.superview removeConstraint:constraint];
+            [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeBottom constant:-layoutBottom multiplier:multiplier];
+        }
         return self;
     };
 }
 
 /**
- *  Width， 无参照物，设置自身的宽，NSLayoutAttributeWidth的multiplier倍
+ *  Width， 参照物，设置自身的宽，NSLayoutAttributeWidth的multiplier倍
  */
 - (UIView *(^)(CGFloat multiplier, CGFloat layoutWidth))layoutWidthWithMultiplier {
     return ^(CGFloat multiplier, CGFloat layoutWidth) {
         ENOUGHCONSTRAINTS
-        [self addToSelfConstraintWithAttribute:NSLayoutAttributeWidth constant:layoutWidth multiplier:multiplier];
+        NSLayoutConstraint *constraint = self.layoutConstraints[width];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeWidth constant:layoutWidth multiplier:multiplier];
+        }else {
+            [self.superview removeConstraint:constraint];
+            [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeWidth constant:layoutWidth multiplier:multiplier];
+        }
         return self;
     };
 }
 
 /**
- *  height，无参照物，设置自身的高，NSLayoutAttributeHeight的multiplier倍
+ *  height，参照物，设置自身的高，NSLayoutAttributeHeight的multiplier倍
  */
 - (UIView *(^)(CGFloat multiplier, CGFloat layoutHeight))layoutHeightWithMultiplier {
     return ^(CGFloat multiplier, CGFloat layoutHeight) {
         ENOUGHCONSTRAINTS
-        [self addToSelfConstraintWithAttribute:NSLayoutAttributeHeight constant:layoutHeight multiplier:multiplier];
+        NSLayoutConstraint *constraint = self.layoutConstraints[height];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeHeight constant:layoutHeight multiplier:multiplier];
+        }else {
+            [self.superview removeConstraint:constraint];
+            [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeHeight constant:layoutHeight multiplier:multiplier];
+        }
         return self;
     };
 }
@@ -181,7 +312,13 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(CGFloat multiplier, CGFloat layoutCenterX))layoutCenterXWithMultiplier {
     return ^(CGFloat multiplier, CGFloat layoutCenterX) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeCenterX constant:layoutCenterX multiplier:multiplier];
+        NSLayoutConstraint *constraint = self.layoutConstraints[centerX];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeCenterX constant:layoutCenterX multiplier:multiplier];
+        }else {
+            [self.superview removeConstraint:constraint];
+            [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeCenterX constant:layoutCenterX multiplier:multiplier];
+        }
         return self;
     };
 }
@@ -192,7 +329,13 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(CGFloat multiplier, CGFloat layoutCenterY))layoutCenterYWithMultiplier {
     return ^(CGFloat multiplier, CGFloat layoutCenterY) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeCenterY constant:layoutCenterY multiplier:multiplier];
+        NSLayoutConstraint *constraint = self.layoutConstraints[centerY];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeCenterY constant:layoutCenterY multiplier:multiplier];
+        }else {
+            [self.superview removeConstraint:constraint];
+            [self addToSuperviewConstraintWithAttribute:NSLayoutAttributeCenterY constant:layoutCenterY multiplier:multiplier];
+        }
         return self;
     };
 }
@@ -205,7 +348,12 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(UIView *sameLayerView, CGFloat left))layoutSameLayerLeft {
     return ^(UIView *sameLayerView, CGFloat left) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeLeft constant:left multiplier:1.0f];
+        NSLayoutConstraint *constraint = self.layoutConstraints[sameLayerLeft];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeLeft constant:left multiplier:1.0f];
+        }else {
+            constraint.constant = left;
+        }
         return self;
     };
 }
@@ -216,7 +364,12 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(UIView *sameLayerView, CGFloat right))layoutSameLayerRight {
     return ^(UIView *sameLayerView, CGFloat right) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeRight constant:right multiplier:1.0f];
+        NSLayoutConstraint *constraint = self.layoutConstraints[sameLayerRight];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeRight constant:right multiplier:1.0f];
+        }else {
+            constraint.constant = right;
+        }
         return self;
     };
 }
@@ -227,7 +380,12 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(UIView *sameLayerView, CGFloat top))layoutSameLayerTop {
     return ^(UIView *sameLayerView, CGFloat top) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeTop constant:top multiplier:1.0f];
+        NSLayoutConstraint *constraint = self.layoutConstraints[sameLayerTop];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeTop constant:top multiplier:1.0f];
+        }else {
+            constraint.constant = top;
+        }
         return self;
     };
 }
@@ -238,7 +396,44 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(UIView *sameLayerView, CGFloat bottom))layoutSameLayerBottom {
     return ^(UIView *sameLayerView, CGFloat bottom) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeBottom constant:bottom multiplier:1.0f];
+        NSLayoutConstraint *constraint = self.layoutConstraints[sameLayerBottom];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeBottom constant:bottom multiplier:1.0f];
+        }else {
+            constraint.constant = bottom;
+        }
+        return self;
+    };
+}
+
+/**
+ *  参照同层级view的width
+ */
+- (UIView *(^)(UIView *sameLayerView, CGFloat width))layoutSameLayerWidth {
+    return ^(UIView *sameLayerView, CGFloat width) {
+        ENOUGHCONSTRAINTS
+        NSLayoutConstraint *constraint = self.layoutConstraints[sameLayerWidth];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeWidth constant:width multiplier:1.0f];
+        }else {
+            constraint.constant = width;
+        }
+        return self;
+    };
+}
+
+/**
+ *  参照同层级view的height
+ */
+- (UIView *(^)(UIView *sameLayerView, CGFloat height))layoutSameLayerHeight {
+    return ^(UIView *sameLayerView, CGFloat height) {
+        ENOUGHCONSTRAINTS
+        NSLayoutConstraint *constraint = self.layoutConstraints[sameLayerHeight];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeHeight constant:height multiplier:1.0f];
+        }else {
+            constraint.constant = height;
+        }
         return self;
     };
 }
@@ -249,7 +444,12 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(UIView *sameLayerView, CGFloat centerX))layoutSameLayerCenterX {
     return ^(UIView *sameLayerView, CGFloat centerX) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeCenterX constant:centerX multiplier:1.0f];
+        NSLayoutConstraint *constraint = self.layoutConstraints[sameLayerCenterX];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeCenterX constant:centerX multiplier:1.0f];
+        }else {
+            constraint.constant = centerX;
+        }
         return self;
     };
 }
@@ -260,7 +460,12 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(UIView *sameLayerView, CGFloat centerY))layoutSameLayerCenterY {
     return ^(UIView *sameLayerView, CGFloat centerY) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeCenterY constant:centerY multiplier:1.0f];
+        NSLayoutConstraint *constraint = self.layoutConstraints[sameLayerCenterY];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeCenterY constant:centerY multiplier:1.0f];
+        }else {
+            constraint.constant = centerY;
+        }
         return self;
     };
 }
@@ -273,7 +478,13 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(UIView *sameLayerView, CGFloat multiplier, CGFloat left))layoutSameLayerLeftWithMultiplier {
     return ^(UIView *sameLayerView, CGFloat multiplier, CGFloat left) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeLeft constant:left multiplier:multiplier];
+        NSLayoutConstraint *constraint = self.layoutConstraints[sameLayerLeft];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeLeft constant:left multiplier:multiplier];
+        }else {
+            [self.superview removeConstraint:constraint];
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeLeft constant:left multiplier:multiplier];
+        }
         return self;
     };
 }
@@ -284,7 +495,13 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(UIView *sameLayerView, CGFloat multiplier, CGFloat right))layoutSameLayerRightWithMultiplier {
     return ^(UIView *sameLayerView, CGFloat multiplier, CGFloat right) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeRight constant:right multiplier:multiplier];
+        NSLayoutConstraint *constraint = self.layoutConstraints[sameLayerRight];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeRight constant:right multiplier:multiplier];
+        }else {
+            [self.superview removeConstraint:constraint];
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeRight constant:right multiplier:multiplier];
+        }
         return self;
     };
 }
@@ -295,7 +512,13 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(UIView *sameLayerView, CGFloat multiplier, CGFloat top))layoutSameLayerTopWithMultiplier {
     return ^(UIView *sameLayerView, CGFloat multiplier, CGFloat top) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeTop constant:top multiplier:multiplier];
+        NSLayoutConstraint *constraint = self.layoutConstraints[sameLayerTop];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeTop constant:top multiplier:multiplier];
+        }else {
+            [self.superview removeConstraint:constraint];
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeTop constant:top multiplier:multiplier];
+        }
         return self;
     };
 }
@@ -306,7 +529,47 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(UIView *sameLayerView, CGFloat multiplier, CGFloat bottom))layoutSameLayerBottomWithMultiplier {
     return ^(UIView *sameLayerView, CGFloat multiplier, CGFloat bottom) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeBottom constant:bottom multiplier:multiplier];
+        NSLayoutConstraint *constraint = self.layoutConstraints[sameLayerBottom];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeBottom constant:bottom multiplier:multiplier];
+        }else {
+            [self.superview removeConstraint:constraint];
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeBottom constant:bottom multiplier:multiplier];
+        }
+        return self;
+    };
+}
+
+/**
+ *  参照同层级view的width
+ */
+- (UIView *(^)(UIView *sameLayerView, CGFloat multiplier, CGFloat width))layoutSameLayerWidthWithMultiplier {
+    return ^(UIView *sameLayerView, CGFloat multiplier, CGFloat width) {
+        ENOUGHCONSTRAINTS
+        NSLayoutConstraint *constraint = self.layoutConstraints[sameLayerWidth];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeWidth constant:width multiplier:multiplier];
+        }else {
+            [self.superview removeConstraint:constraint];
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeWidth constant:width multiplier:multiplier];
+        }
+        return self;
+    };
+}
+
+/**
+ *  参照同层级view的width
+ */
+- (UIView *(^)(UIView *sameLayerView, CGFloat multiplier, CGFloat height))layoutSameLayerHeightWithMultiplier {
+    return ^(UIView *sameLayerView, CGFloat multiplier, CGFloat height) {
+        ENOUGHCONSTRAINTS
+        NSLayoutConstraint *constraint = self.layoutConstraints[sameLayerHeight];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeHeight constant:height multiplier:multiplier];
+        }else {
+            [self.superview removeConstraint:constraint];
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeHeight constant:height multiplier:multiplier];
+        }
         return self;
     };
 }
@@ -317,7 +580,13 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(UIView *sameLayerView, CGFloat multiplier, CGFloat centerX))layoutSameLayerCenterXWithMultiplier {
     return ^(UIView *sameLayerView, CGFloat multiplier, CGFloat centerX) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeCenterX constant:centerX multiplier:multiplier];
+        NSLayoutConstraint *constraint = self.layoutConstraints[sameLayerCenterX];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeCenterX constant:centerX multiplier:multiplier];
+        }else {
+            [self.superview removeConstraint:constraint];
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeCenterX constant:centerX multiplier:multiplier];
+        }
         return self;
     };
 }
@@ -328,7 +597,13 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(UIView *sameLayerView, CGFloat multiplier, CGFloat centerY))layoutSameLayerCenterYWithMultiplier {
     return ^(UIView *sameLayerView, CGFloat multiplier, CGFloat centerY) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeCenterY constant:centerY multiplier:multiplier];
+        NSLayoutConstraint *constraint = self.layoutConstraints[sameLayerCenterY];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeCenterY constant:centerY multiplier:multiplier];
+        }else {
+            [self.superview removeConstraint:constraint];
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute:NSLayoutAttributeCenterY constant:centerY multiplier:multiplier];
+        }
         return self;
     };
 }
@@ -341,7 +616,12 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(UIView *sameLayerView, CGFloat constant))layoutAtSameLayerLeft {
     return ^(UIView *sameLayerView, CGFloat constant) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute1:NSLayoutAttributeRight attribute2:NSLayoutAttributeLeft constant:constant multiplier:1.0f];
+        NSLayoutConstraint *constraint = self.layoutConstraints[sameLayerLeft_C];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute1:NSLayoutAttributeRight attribute2:NSLayoutAttributeLeft constant:-constant multiplier:1.0f];
+        }else {
+            constraint.constant = -constant;
+        }
         return self;
     };
 }
@@ -352,7 +632,12 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(UIView *sameLayerView, CGFloat constant))layoutAtSameLayerRight {
     return ^(UIView *sameLayerView, CGFloat constant) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute1:NSLayoutAttributeLeft attribute2:NSLayoutAttributeRight constant:constant multiplier:1.0f];
+        NSLayoutConstraint *constraint = self.layoutConstraints[sameLayerRight_C];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute1:NSLayoutAttributeLeft attribute2:NSLayoutAttributeRight constant:constant multiplier:1.0f];
+        }else {
+            constraint.constant = constant;
+        }
         return self;
     };
 }
@@ -363,7 +648,12 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(UIView *sameLayerView, CGFloat constant))layoutAtSameLayerTop {
     return ^(UIView *sameLayerView, CGFloat constant) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute1:NSLayoutAttributeBottom attribute2:NSLayoutAttributeTop constant:constant multiplier:1.0f];
+        NSLayoutConstraint *constraint = self.layoutConstraints[sameLayerTop_C];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute1:NSLayoutAttributeBottom attribute2:NSLayoutAttributeTop constant:constant multiplier:1.0f];
+        }else {
+            constraint.constant = constant;
+        }
         return self;
     };
 }
@@ -374,7 +664,12 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(UIView *sameLayerView, CGFloat constant))layoutAtSameLayerBottom {
     return ^(UIView *sameLayerView, CGFloat constant) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute1:NSLayoutAttributeTop attribute2:NSLayoutAttributeBottom constant:constant multiplier:1.0f];
+        NSLayoutConstraint *constraint = self.layoutConstraints[sameLayerBottom_C];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute1:NSLayoutAttributeTop attribute2:NSLayoutAttributeBottom constant:constant multiplier:1.0f];
+        }else {
+            constraint.constant = constant;
+        }
         return self;
     };
 }
@@ -387,7 +682,13 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(UIView *sameLayerView, CGFloat multiplier, CGFloat constant))layoutAtSameLayerLeftWithMultiplier {
     return ^(UIView *sameLayerView, CGFloat multiplier, CGFloat constant) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute1:NSLayoutAttributeRight attribute2:NSLayoutAttributeLeft constant:constant multiplier:1.0f];
+        NSLayoutConstraint *constraint = self.layoutConstraints[sameLayerLeft_C];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute1:NSLayoutAttributeRight attribute2:NSLayoutAttributeLeft constant:constant multiplier:multiplier];
+        }else {
+            [self.superview removeConstraint:constraint];
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute1:NSLayoutAttributeRight attribute2:NSLayoutAttributeLeft constant:constant multiplier:multiplier];
+        }
         return self;
     };
 }
@@ -398,7 +699,13 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(UIView *sameLayerView, CGFloat multiplier, CGFloat constant))layoutAtSameLayerRightWithMultiplier {
     return ^(UIView *sameLayerView, CGFloat multiplier, CGFloat constant) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute1:NSLayoutAttributeLeft attribute2:NSLayoutAttributeRight constant:constant multiplier:1.0f];
+        NSLayoutConstraint *constraint = self.layoutConstraints[sameLayerRight_C];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute1:NSLayoutAttributeLeft attribute2:NSLayoutAttributeRight constant:constant multiplier:multiplier];;
+        }else {
+            [self.superview removeConstraint:constraint];
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute1:NSLayoutAttributeRight attribute2:NSLayoutAttributeLeft constant:constant multiplier:multiplier];
+        }
         return self;
     };
 }
@@ -409,7 +716,13 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(UIView *sameLayerView, CGFloat multiplier, CGFloat constant))layoutAtSameLayerTopWithMultiplier {
     return ^(UIView *sameLayerView, CGFloat multiplier, CGFloat constant) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute1:NSLayoutAttributeBottom attribute2:NSLayoutAttributeTop constant:constant multiplier:multiplier];
+        NSLayoutConstraint *constraint = self.layoutConstraints[sameLayerTop_C];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute1:NSLayoutAttributeBottom attribute2:NSLayoutAttributeTop constant:constant multiplier:multiplier];
+        }else {
+            [self.superview removeConstraint:constraint];
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute1:NSLayoutAttributeBottom attribute2:NSLayoutAttributeTop constant:constant multiplier:multiplier];
+        }
         return self;
     };
 }
@@ -420,7 +733,13 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
 - (UIView *(^)(UIView *sameLayerView, CGFloat multiplier, CGFloat constant))layoutAtSameLayerBottomWithMultiplier {
     return ^(UIView *sameLayerView, CGFloat multiplier, CGFloat constant) {
         ENOUGHCONSTRAINTS
-        [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute1:NSLayoutAttributeTop attribute2:NSLayoutAttributeBottom constant:constant multiplier:multiplier];
+        NSLayoutConstraint *constraint = self.layoutConstraints[sameLayerBottom_C];
+        if (!constraint) {
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute1:NSLayoutAttributeTop attribute2:NSLayoutAttributeBottom constant:constant multiplier:multiplier];
+        }else {
+            [self.superview removeConstraint:constraint];
+            [self addToSuperviewConstraintWithSameLayerView:sameLayerView attribute1:NSLayoutAttributeTop attribute2:NSLayoutAttributeBottom constant:constant multiplier:multiplier];
+        }
         return self;
     };
 }
@@ -437,6 +756,8 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
  */
 - (void)addToSuperviewConstraintWithSameLayerView:(UIView *)view attribute1:(NSLayoutAttribute)attribute1 attribute2:(NSLayoutAttribute)attribute2 constant:(CGFloat)constant multiplier:(CGFloat)multiplier {
     NSLayoutConstraint *layoutConstraint = [NSLayoutConstraint constraintWithItem:self attribute:attribute1 relatedBy:NSLayoutRelationEqual toItem:view attribute:attribute2 multiplier:multiplier constant:constant];
+    IFSUBVIEWS
+    layoutConstraints_SameLayer_ContraryAttribute_AddObject_forKey(attribute1)
     [self.superview addConstraint:layoutConstraint];
 }
 
@@ -449,6 +770,8 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
  */
 - (void)addToSuperviewConstraintWithSameLayerView:(UIView *)view attribute:(NSLayoutAttribute)attribute constant:(CGFloat)constant multiplier:(CGFloat)multiplier {
     NSLayoutConstraint *layoutConstraint = [NSLayoutConstraint constraintWithItem:self attribute:attribute relatedBy:NSLayoutRelationEqual toItem:view attribute:attribute multiplier:multiplier constant:constant];
+    IFSUBVIEWS
+    layoutConstraints_SameLayer_AddObject_forKey(attribute);
     [self.superview addConstraint:layoutConstraint];
 }
 
@@ -460,6 +783,10 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
  */
 - (void)addToSuperviewConstraintWithAttribute:(NSLayoutAttribute)attribute constant:(CGFloat)constant multiplier:(CGFloat)multiplier {
     NSLayoutConstraint *layoutConstraint = [NSLayoutConstraint constraintWithItem:self attribute:attribute relatedBy:NSLayoutRelationEqual toItem:self.superview attribute:attribute multiplier:multiplier constant:constant];
+    IFSUBVIEWS
+    
+    layoutConstraints_Super_AddObject_forKey(attribute)
+    
     [self.superview addConstraint:layoutConstraint];
 }
 
@@ -471,7 +798,88 @@ self.translatesAutoresizingMaskIntoConstraints = NO;\
  */
 - (void)addToSelfConstraintWithAttribute:(NSLayoutAttribute)attribute constant:(CGFloat)constant multiplier:(CGFloat)multiplier {
     NSLayoutConstraint *layoutConstraint = [NSLayoutConstraint constraintWithItem:self attribute:attribute relatedBy:NSLayoutRelationEqual toItem:nil attribute:attribute multiplier:multiplier constant:constant];
+    layoutConstraints_Super_AddObject_forKey(attribute)
     [self addConstraint:layoutConstraint];
+}
+
+- (NSString *)keyWithLayoutAttribute:(NSLayoutAttribute)attribute {
+    switch (attribute) {
+        case NSLayoutAttributeLeft:
+            return left;
+        case NSLayoutAttributeRight:
+            return right;
+        case NSLayoutAttributeTop:
+            return top;
+        case NSLayoutAttributeBottom:
+            return bottom;
+        case NSLayoutAttributeWidth:
+            return width;
+        case NSLayoutAttributeHeight:
+            return height;
+        case NSLayoutAttributeCenterX:
+            return centerX;
+        case NSLayoutAttributeCenterY:
+            return centerY;
+        case NSLayoutAttributeLeading:
+            break;
+        case NSLayoutAttributeTrailing:
+            break;
+        case NSLayoutAttributeBaseline:
+            break;
+        case NSLayoutAttributeFirstBaseline:
+            break;
+        case NSLayoutAttributeLeftMargin:
+            break;
+        case NSLayoutAttributeRightMargin:
+            break;
+        case NSLayoutAttributeTopMargin:
+            break;
+        case NSLayoutAttributeBottomMargin:
+            break;
+        case NSLayoutAttributeLeadingMargin:
+            break;
+        case NSLayoutAttributeTrailingMargin:
+            break;
+        case NSLayoutAttributeCenterXWithinMargins:
+            break;
+        case NSLayoutAttributeCenterYWithinMargins:
+            break;
+        case NSLayoutAttributeNotAnAttribute:
+            break;
+        default:
+            break;
+    }
+    return nil;
+}
+
+#pragma mark - 内部属性Set/Get
+
+- (NSMutableDictionary *)layoutConstraints {
+    NSMutableDictionary *_layoutConstraints = objc_getAssociatedObject(self, kLayoutConstraints);
+    if (!_layoutConstraints) {
+        _layoutConstraints = [NSMutableDictionary new];
+        self.layoutConstraints = _layoutConstraints;
+    }
+    return _layoutConstraints;
+}
+
+- (void)setLayoutConstraints:(NSMutableDictionary *)layoutConstraints {
+    objc_setAssociatedObject(self, kLayoutConstraints, layoutConstraints, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+#pragma mark - 其他计算大小方法
+
+/**
+ *  计算文本宽度
+ *
+ *  @param text 文本
+ *  @param font 字体
+ *
+ *  @return 宽度
+ */
+- (CGFloat)calculationTextWidthWithText:(NSString *)text font:(UIFont *)font {
+    CGSize msgSize = [text sizeWithAttributes:[NSDictionary dictionaryWithObjectsAndKeys:font,NSFontAttributeName, nil]];
+    return msgSize.width;
 }
 
 @end
